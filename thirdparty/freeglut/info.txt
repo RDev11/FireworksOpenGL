@@ -1,0 +1,3 @@
+это библиотека freeglut 3.2.1 http://freeglut.sourceforge.net
+
+собранная для windows x64.
