@@ -8,14 +8,20 @@
 #include "SOIL/SOIL.h"
 #include <functional>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#ifndef M_PI //is _USE_MATH_DEFINES compiler specific?
+constexpr double M_PI = 3.14159265358979323846;
+#endif
+
 using std::cout;
 using std::endl;
-
 
 inline GLuint LoadTexture(const char* name) {
 	//int width, height;//SOIL_LOAD_RGBA
 	//unsigned char* image = SOIL_load_image("qwerty.png", &width, &height, 0, SOIL_LOAD_AUTO);
-	
+
+	using namespace std; 
 	//std::cout <<"W,H="<< width << ", " << height << "\n";
 	auto h = SOIL_load_OGL_texture(name, SOIL_LOAD_RGBA, 0, 0);
 	assert(h);

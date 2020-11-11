@@ -64,10 +64,11 @@ int main(int argc, char* argv[])
     //setlocale(LC_ALL, "");
     glutInit(&argc, argv);//начальная инициализация окна
     glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DOUBLE /*| GLUT_DEPTH*/);//установка режима отображения
-    glutInitWindowSize(400, 400);//размер окна
+    glutInitWindowSize(800, 600);//размер окна
+    
     //glutInitWindowPosition(200, 200);//начальная позиция на экране
     //вы заметили что вначале идут функции с приставкой glutInit...?, так вот они должны быть первыми, а потом уже все остальные ф-ии.
-    glutCreateWindow("Window");//заголовок окна
+    glutCreateWindow("Fireworks!!!");//заголовок окна
     glClearColor(0.08f, .08f, .08f, 0);//цвет фона
 
     //glutFullScreen();

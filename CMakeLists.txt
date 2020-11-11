@@ -38,6 +38,7 @@ set(srcList
 	"src/utls.h"
 	"src/Widgets.h"
 	"src/Widgets.cpp"
+	"src/Fireworks.h"
 	)
 
 

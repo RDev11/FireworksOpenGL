@@ -1,22 +1,36 @@
 #include "App.h"
 
 #include <string>
-#include <iostream>
-#include <random>
-#define _USE_MATH_DEFINES
-#include <math.h>
-#ifndef M_PI //is _USE_MATH_DEFINES compiler specific?
-	constexpr double M_PI = 3.14159265358979323846;
-#endif
 
 
 App::App()
 	: rootWidget(0, 0, 0, 0, .0f, .0f, 1.0f, 1.0f)
+	, fireworks(this->objects)
 {
 	std::cout << "App();";
 	rootWidget.colorRGBA[3] = .0f;
+
+	auto windowClose = std::make_shared<Widget>(
+		-100, -60,
+		100, 60,
+		0.5f, 0.5f,//align=center
+		0.5f, 0.5f
+	);
+	windowClose->colorRGBA[3] = 0.0;
+
+	rootWidget.addChild(windowClose);
+
+
+	
 	rootWidget.addChild(
-		std::make_shared<Button>([]() {cout << "clicked"; }, 16, -16 - 32, 16 + 48, -16, .0f, 1.0f, 0.0f, 1.0f));
+		std::make_shared<Button>(
+			[w = std::weak_ptr<Widget>(windowClose)]() {
+				cout << "clicked";
+				w.lock()->colorRGBA[3] += 0.0; 
+			}, 
+			16, -16 - 32, 16 + 48, -16, .0f, 1.0f, 0.0f, 1.0f));
+
+
 }
 App::~App()
 {
@@ -38,12 +52,14 @@ void App::display() {
 		fps_t -= 0.5f;
 	}
 	
+	fireworks.update(time_since_last_frame);
+
 	for (auto && o : objects)	{
 		o->update(time_since_last_frame);
 	}
 
 	objects.remove_if([](const std::shared_ptr<GameObject>& o) { return o->isDestroed(); });
-
+	
 
 	//========================================================
 	//теперь отрисовка
@@ -273,16 +289,8 @@ void App::mouseButton(int but, int state, int x, int y) {
 	mouse_y = y;
 	std::cout << "mouseEvent("<<but<<", "<< state << ", " << x << ", " << y << ")" << std::endl;
 	bool handled = rootWidget.mouseButton(but, state, x, y);
-	if (!handled && but == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-	{
-
-		for (double i = 0; i < 2*M_PI; i += 0.01)
-		{
-			double speed = random(0, 1);
-			speed = 250*(1.05f - speed * speed );
-			objects.emplace_back(std::make_shared<Particle>(x, y, speed*cos(i), speed*sin(i)*0.95, 3));
-		}
-
+	if (!handled && but == GLUT_LEFT_BUTTON && state == GLUT_DOWN)	{
+		fireworks.fwExplode(x, y);
 	}
 }
 

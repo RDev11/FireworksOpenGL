@@ -1,18 +1,20 @@
 #pragma once
 
 #include "utls.h"
-#include <iostream>
 #include "GL/freeglut.h"
 #include "GameObject.h"
 #include "Particle.h"
 #include "Widgets.h"
 ////
 #include <list>
+#include "Fireworks.h"
+
 
 class App {
+private:
 	std::list<std::shared_ptr<GameObject>> objects;
 	Widget rootWidget;
-
+	Fireworks fireworks;
 
 	int mouse_x, mouse_y;
 public:
