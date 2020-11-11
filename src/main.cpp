@@ -2,8 +2,8 @@
 //#include <GL/gl.h>
 //#include <functional>
 #include "App.h"
-
 #include <string_view>
+#include <Windows.h>
 
 void display(){
     App::instance()->display();
@@ -33,6 +33,12 @@ void pressedmousemoved(int X, int Y){
 
 int main(int argc, char* argv[])
 {
+    #ifndef NDEBUG
+        ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+
+    #endif // !1
+    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+
     //std::filesystem::current_path()
     //setlocale(LC_ALL, "");
     glutInit(&argc, argv);//начальная инициализация окна
@@ -61,8 +67,6 @@ int main(int argc, char* argv[])
     //glutSetCursor(GLUT_CURSOR_NONE);
     //init_gl();
     //initExtensions();//libExt
-
-
 
 
     glutMainLoop();

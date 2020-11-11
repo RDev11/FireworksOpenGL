@@ -106,7 +106,7 @@ protected:
 
 		int lines = 1;
 		int lineWidth = (int)std::distance(text.begin(), std::find(text.begin(), text.end(), '\n'));
-		glRasterPos2i(x_ - lineWidth * font_w * font_align_x, y_ + (lines * font_h));
+		glRasterPos2i(x_ - (GLint)(lineWidth * font_w * font_align_x), y_ + (lines * font_h));
 
 		for (auto p = text.begin(); p != text.end(); ++p)
 		{
@@ -114,7 +114,7 @@ protected:
 			{
 				lineWidth = (int)std::distance(p+1, std::find(p+1, text.end(), '\n'));
 				lines++;
-				glRasterPos2i(x_ - lineWidth * font_w * font_align_x, y_ + (lines * font_h));
+				glRasterPos2i(x_ - (GLint)(lineWidth * font_w * font_align_x), y_ + (lines * font_h));
 			}else
 				glutBitmapCharacter(font, *p);
 		}
@@ -227,5 +227,97 @@ public:
 
 		for (auto&& child : children)
 			child->draw();
+	}
+};
+class WSlider : public Widget {
+	std::function<void(double)>  onChange;
+public:
+	std::string text; 
+	double value_min; 
+	double value_max; 
+	double value;
+	WSlider(std::string text_,
+		std::function<void(double)>&& onChange_,
+		double value_min_, double value_max_, double value_init_,
+		GLint offset_x0_, GLint offset_y0_,
+		GLint offset_x1_, GLint offset_y1_,
+		GLfloat	anchor_x0_ , GLfloat anchor_y0_,
+		GLfloat anchor_x1_ , GLfloat anchor_y1_)
+		:Widget(
+			offset_x0_, offset_y0_,
+			offset_x1_, offset_y1_,
+			anchor_x0_, anchor_y0_,
+			anchor_x1_, anchor_y1_)
+		, onChange(onChange_)
+		, value_min(value_min_)
+		, value_max(value_max_)
+		, value(value_init_)
+	{
+		text = std::move(text_);
+	}
+
+	void draw() override {
+		if (!visible) return;
+		glColor4fv(colorRGBA);		
+	//----
+		{//line...
+			glColor4f(colorRGBA[0] * 0.5f, colorRGBA[1] * 0.5f, colorRGBA[2] * 0.5f, colorRGBA[3]);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			GLint vertexes[][2] = { {x0, (y0 + y1) / 2 - 2}
+								  , {x0, (y0 + y1) / 2 + 2}
+								  , {x1, (y0 + y1) / 2 + 2}
+							      , {x1, (y0 + y1) / 2 - 2} };
+			glVertexPointer(2, GL_INT, sizeof(GLint[2]), vertexes);
+			GLuint triangleList[][3] = { {0,1,3},{1,2,3} };
+			glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, triangleList);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		}
+		{//slider
+			glColor4fv(colorRGBA);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			GLint x_ = GLint(x0 + (x1 - x0) * (value - value_min) / (value_max - value_min));
+			GLint vertexes[][2] = { {x_ - 4, y0}
+								  , {x_ - 4, y1}
+								  , {x_ + 4, y1}
+								  , {x_ + 4, y0} };
+			glVertexPointer(2, GL_INT, sizeof(GLint[2]), vertexes);
+
+			if (texture) {
+				GLfloat texCoords[][2] = { {0, 0}, {0, 1}, {1, 1}, {1, 0} };
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat[2]), texCoords);
+
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, texture);
+			}
+			GLuint triangleList[][3] = { {0,1,3},{1,2,3} };
+			glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, triangleList);
+			glDisable(GL_TEXTURE_2D);
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+	//------
+		if (!text.empty()) {
+			glColor3ub(255, 255, 255);
+			drawText(text, x0, (y0 + y1) / 2 - 11, 1.0f);
+		}
+		for (auto&& child : children)
+			child->draw();
+	}
+	bool mouseButtonImpl(int but, int state, int x, int y) override {
+		/* известно, что mouse_x, y попали в bbox widget'а */
+		bool handled = false;
+		if ((but == GLUT_LEFT_BUTTON && state == GLUT_DOWN) ||
+			(but == -1 && state == -1)
+			) {
+			//begin_drag(...) //todo...
+			if (x1 - x0 != 0) {
+				value = (x - x0) / (double)(x1 - x0) * (value_max - value_min);
+				onChange(value);
+				handled = true;
+			}
+		}
+		return handled;
 	}
 };

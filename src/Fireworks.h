@@ -66,8 +66,8 @@ public:
 	}
 
 
-	int strip = 3;
-	double wait=0.5;
+	int strip_def = 3, strip = strip_def;
+	double wait_def = 2.5, wait = 0.5;
 
 	void update(double delta_time) {
 		wait -= delta_time;
@@ -80,8 +80,8 @@ public:
 
 			strip--;
 			if (strip <= 0) {
-				strip = 4;
-				wait = 2.5;
+				strip = strip_def;
+				wait = wait_def;
 
 				do {
 					r = (GLfloat)random();

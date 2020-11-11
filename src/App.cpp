@@ -75,6 +75,56 @@ App::App()
 	buttonClose->texture = LoadTexture("media/exit.png");
 
 	rootWidget.addChild(buttonClose);
+
+
+	/// ///////////
+	auto sliderSpeed = std::make_shared<WSlider>(
+		"Velocity:",
+		[&](double val)
+	    {
+			fireworks.particles_init_speed = val;
+		}, 
+		15.0, 1000.0, fireworks.particles_init_speed,
+
+		-90, -16 - 16,
+		-10, -16,
+		1.0f, 1.0f, 
+		1.0f, 1.0f
+	); 
+	sliderSpeed->colorRGBA[1] = 255;
+	rootWidget.addChild(sliderSpeed);
+	//
+	auto sliderDelay = std::make_shared<WSlider>(
+		"Delay:",
+		[&](double val)
+		{
+			fireworks.wait_def = val;
+		},
+		0.0, 7.5, fireworks.wait_def,
+
+			-90, -32 - 16,
+			-10, -32,
+			1.0f, 1.0f,
+			1.0f, 1.0f
+			);
+	sliderDelay->colorRGBA[1] = 255;
+	rootWidget.addChild(sliderDelay);
+	//
+	auto sliderFreq = std::make_shared<WSlider>(
+		"Density:",
+		[&](double val)
+		{
+			fireworks.particleContM = val;
+		},
+		0.0, 4.0, fireworks.particleContM,
+
+			-90, -48 - 16,
+			-10, -48,
+			1.0f, 1.0f,
+			1.0f, 1.0f
+			);
+	sliderFreq->colorRGBA[1] = 255;
+	rootWidget.addChild(sliderFreq);
 }
 App::~App()
 { }
@@ -166,19 +216,19 @@ void App::display() {
 	glutSwapBuffers();//прорисовываем буфер на экран
 }
 void App::keyboard(unsigned char key, int mousePositionX, int mousePositionY) {
-
-	switch (key)
-	{
-	//case 27://escape
-	//	exit(0);
-	
-	//	case 'P':
-	//		mm.Load("c:\\"); 
-	//		break;
-	default:
-		break;
-	}
-	//keys[key] = 1;
+	//
+	//switch (key)
+	//{
+	////case 27://escape
+	////	exit(0);
+	//
+	////	case 'P':
+	////		mm.Load("c:\\"); 
+	////		break;
+	//default:
+	//	break;
+	//}
+	////keys[key] = 1;
 }
 
 void App::reshape(int w, int h)
@@ -217,12 +267,14 @@ void App::mouseButton(int but, int state, int x, int y) {
 }
 
 void App::mouseMoved(int x, int y) {
-
+	//cout << ".";
+	bool handled = rootWidget.mouseButton(-1, -2, x, y);
 }
 
 void App::mouseMovedPressed(int x, int y) {
 	mouse_x = x;
 	mouse_y = y;
+	bool handled = rootWidget.mouseButton(-1, -1, x, y);
 }
 
 void App::printText(int x, int y, std::string_view text)
