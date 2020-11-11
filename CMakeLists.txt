@@ -36,6 +36,8 @@ set(srcList
 	"src/Particle.h"
 	"src/Particle.cpp"
 	"src/utls.h"
+	"src/Widgets.h"
+	"src/Widgets.cpp"
 	)
 
 
@@ -118,7 +120,7 @@ target_link_libraries(${project}
 
 
 ###
-# Копипастим папку Media в папку, где будет exe'шник: Release & Debug
+# ????? ???Media ???? ?????exe'??? Release & Debug
 file(GLOB mediaFiles
     "media/*"
     "media/*/*"

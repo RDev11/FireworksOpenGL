@@ -10,13 +10,25 @@
 #endif
 
 
-
-
+App::App()
+	: rootWidget(0, 0, 0, 0, .0f, .0f, 1.0f, 1.0f)
+{
+	std::cout << "App();";
+	rootWidget.colorRGBA[3] = .0f;
+	rootWidget.addChild(
+		std::make_shared<Button>([]() {cout << "clicked"; }, 16, -16 - 32, 16 + 48, -16, .0f, 1.0f, 0.0f, 1.0f));
+}
+App::~App()
+{
+	std::cout << "~App();";
+}
+/**
+**/
 void App::display() {
-
+	//сначала вся логика 
 	int miliseconds_since_start = glutGet(GLUT_ELAPSED_TIME);
-	double time_since_last_frame = miliseconds_since_start * 0.001f - time_now;
-	time_now = miliseconds_since_start * 0.001f;
+	double time_since_last_frame = miliseconds_since_start * 0.001 - time_now;
+	time_now = float( miliseconds_since_start * 0.001);
 
 	fps_t += time_since_last_frame;
 	fps_i++;
@@ -25,7 +37,7 @@ void App::display() {
 		fps_i = 0;
 		fps_t -= 0.5f;
 	}
-
+	
 	for (auto && o : objects)	{
 		o->update(time_since_last_frame);
 	}
@@ -34,7 +46,8 @@ void App::display() {
 
 
 	//========================================================
-	/* рисуем что нибудь */
+	//теперь отрисовка
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);//очищаем буфер
 
 
@@ -43,60 +56,53 @@ void App::display() {
 		o->draw();
 	}
 
-	glColor3f(1.0f, 0.0f, 0.0f);//задаем цвет рисования
-	glLineWidth(3);//задаем толщину линии
-	glBegin(GL_LINES);//говорим что будем рисовать линию
-	glVertex2d(10, 10);//координата начала отрезка в формате (x,y)
-	glVertex2d(30, 30);//координата конца отрезка
-	glEnd();//говорим что закончили рисовать линию
+	rootWidget.draw();
+
+	
+	//glColor3f(1.0f, 0.0f, 0.0f);//задаем цвет рисования
+	//glLineWidth(3);//задаем толщину линии
+	//glBegin(GL_LINES);//говорим что будем рисовать линию
+	//glVertex2d(10, 10);//координата начала отрезка в формате (x,y)
+	//glVertex2d(30, 30);//координата конца отрезка
+	//glEnd();//говорим что закончили рисовать линию
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPointSize(6);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glBegin(GL_POINTS);//рисуем черную точку
-	glVertex2f(100, 100);
-	glEnd();
+	//glPointSize(6);
+	//glColor3f(1.0f, 1.0f, 1.0f);
+	//glBegin(GL_POINTS);//рисуем черную точку
+	//glVertex2f(100, 100);
+	//glEnd();
 
-	glLineWidth(3);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_LINES);//рисуем красную линию
-	glVertex2d(-50, 150);
-	glVertex2d(50, 50);
-	glEnd();
+	//glLineWidth(3);
+	//glColor3f(1.0f, 0.0f, 0.0f);
+	//glBegin(GL_LINES);//рисуем красную линию
+	//glVertex2d(-50, 150);
+	//glVertex2d(50, 50);
+	//glEnd();
 
 
-	glLineWidth(3);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.5f);
-	glBegin(GL_LINES);//рисуем красную линию
-	glVertex2d(-50, 145);
-	glVertex2d(50, 45);
-	glEnd();
+	//glLineWidth(3);
+	//glColor4f(1.0f, 0.0f, 0.0f, 0.5f);
+	//glBegin(GL_LINES);//рисуем красную линию
+	//glVertex2d(-50, 145);
+	//glVertex2d(50, 45);
+	//glEnd();
 
-	glLineWidth(3);
-	glColor4f(1.0f, 0.0f, 0.0f, 0.2f);
-	glBegin(GL_LINES);//рисуем красную линию
-	glVertex2d(-50,140);
-	glVertex2d(50, 40);
-	glEnd();
+	//glLineWidth(3);
+	//glColor4f(1.0f, 0.0f, 0.0f, 0.2f);
+	//glBegin(GL_LINES);//рисуем красную линию
+	//glVertex2d(-50,140);
+	//glVertex2d(50, 40);
+	//glEnd();
 
 	glColor3ub(0, 255, 0);
-	printText(0, win.height, "Fps: " + std::to_string(fps) + "\n#Particles: " + std::to_string(objects.size()));
-
+	printText(0, glutGet(GLUT_WINDOW_HEIGHT), "Fps: " + std::to_string(fps) + "\n#Particles: " + std::to_string(objects.size()));
+	
 
 	glutSwapBuffers();//прорисовываем буфер на экран
-	/*
-	vec3 light(150*sin(last_frame_time*0.002),50,150*cos(last_frame_time*0.002));
-	glsl_.setUniformVector4("lightPos",light);
 
-	vec3 eye(Cam.x,Cam.y,Cam.z);
-	glsl_.setUniformVector4("eyePos",eye);
-
-	double time[4];time[0]=glutGet(GLUT_ELAPSED_TIME);
-	glsl_.setUniformVector4("time",time);
-
-	*/
 	//
 	//
 	//	int tss = glutGet(GLUT_ELAPSED_TIME);
@@ -181,16 +187,6 @@ void App::display() {
 	//	GLfloat aspect = (GLfloat)win.width / win.height;
 	//	glOrtho(0, win.width, 0, win.height, 0, 1);
 	//	glEnable(GL_TEXTURE_2D);
-	//	//guiP->draw();
-	////    t1=GL_ZERO;
-	////	  t1=GL_ONE;
-	////	  t1=GL_SRC_COLOR;
-	////	  t1=GL_ONE_MINUS_SRC_COLOR;
-	////	  t1=GL_SRC_ALPHA;
-	////	  t1=GL_ONE_MINUS_SRC_ALPHA;
-	////	  t1=GL_DST_ALPHA;
-	////	  t1=GL_ONE_MINUS_DST_ALPHA;  
-	////	glEnable(GL_BLEND);
 	//	glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 	//	glBindTexture(GL_TEXTURE_2D, sceneManager.materialManager.font);
 	//	sceneManager.materialManager.setptr(0, win.height);
@@ -250,10 +246,8 @@ void App::keyboard(unsigned char key, int mousePositionX, int mousePositionY) {
 void App::reshape(int w, int h)
 {
 	glLoadIdentity();
-	win.width = w;
-	win.height = h;
-
-	glViewport(0, 0, win.width, win.height);
+	
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -265,6 +259,8 @@ void App::reshape(int w, int h)
 		glOrtho(0, w, h, 0, -1, 1);
 	}
 	glMatrixMode(GL_MODELVIEW);
+
+	rootWidget.reshape();
 }
 
 void App::keyboardUp(unsigned char key, int mousePositionX, int mousePositionY) {
@@ -276,7 +272,8 @@ void App::mouseButton(int but, int state, int x, int y) {
 	mouse_x = x;
 	mouse_y = y;
 	std::cout << "mouseEvent("<<but<<", "<< state << ", " << x << ", " << y << ")" << std::endl;
-	if (but == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	bool handled = rootWidget.mouseButton(but, state, x, y);
+	if (!handled && but == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 
 		for (double i = 0; i < 2*M_PI; i += 0.01)

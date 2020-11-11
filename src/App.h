@@ -5,38 +5,14 @@
 #include "GL/freeglut.h"
 #include "GameObject.h"
 #include "Particle.h"
+#include "Widgets.h"
 ////
 #include <list>
 
-class Widget {
-public:
-	GLuint texture;
-	Widget() {}
-	virtual ~Widget(){}
-	virtual void draw() {}
-};
-struct Button : public Widget{
-	Button() {
-		texture = LoadTexture("qwerty.png");
-		assert(texture);
-	}
-};
-
 class App {
 	std::list<std::shared_ptr<GameObject>> objects;
-	std::list<std::shared_ptr<Widget>> widgets;
+	Widget rootWidget;
 
-	struct  glutWindow {
-		int width;
-		int height;
-		int hwnd;
-		char* title;
-
-		float field_of_view_angle;
-		float z_near;
-		float z_far;
-	};
-	glutWindow win;
 
 	int mouse_x, mouse_y;
 public:
@@ -45,19 +21,14 @@ public:
 		return &app;
 	}
 private:
-	App() {
-		std::cout << "App();";
-		widgets.emplace_back(std::make_shared<Button>());
-	}
-	~App() {
-		std::cout << "~App();";
-	}
+	App();
+	~App();
 public:
 	//[seconds] since start
 	float time_now = 0;
 	int fps;
 	int fps_i;
-	float fps_t;
+	double fps_t;
 
 
 	//bool keys[256];

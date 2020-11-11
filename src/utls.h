@@ -6,17 +6,20 @@
 #include <random>
 #include <cassert>
 #include "SOIL/SOIL.h"
+#include <functional>
 
 using std::cout;
 using std::endl;
 
 
 inline GLuint LoadTexture(const char* name) {
-	int width, height;//SOIL_LOAD_RGBA
-	unsigned char* image = SOIL_load_image("qwerty.png", &width, &height, 0, SOIL_LOAD_AUTO);
-	std::cout <<"W,H="<< width << ", " << height << "\n";
-
-	return 1;// SOIL_load_OGL_texture(name, SOIL_LOAD_RGBA, 0, 0);
+	//int width, height;//SOIL_LOAD_RGBA
+	//unsigned char* image = SOIL_load_image("qwerty.png", &width, &height, 0, SOIL_LOAD_AUTO);
+	
+	//std::cout <<"W,H="<< width << ", " << height << "\n";
+	auto h = SOIL_load_OGL_texture(name, SOIL_LOAD_RGBA, 0, 0);
+	assert(h);
+	return h;
 
 	//char cn[256];
 	//wcstombs(cn, name, wcslen(name) + 1),
