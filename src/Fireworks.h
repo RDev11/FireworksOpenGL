@@ -10,7 +10,7 @@ class Fireworks {
 	//decltype(App::objects) *objects;
 	std::list<std::shared_ptr<GameObject>> &objs;
 public:
-
+	int fwCount = 0;
 	Fireworks(std::list<std::shared_ptr<GameObject>>& objects_)
 		:objs (objects_) 
 	{
@@ -24,6 +24,7 @@ public:
 	int fwType = 0;
 
 	void fwExplode(GLint x, GLint y) {
+		fwCount++;
 		for (double i = 0; i < 2 * M_PI; i += 0.02 / particleContM)
 		{
 			double speed = random(0, 1);
@@ -46,7 +47,7 @@ public:
 						x, y,
 						speed * cos(i), speed * sin(i),
 						3,
-						r * random(0.6, 1.5), g * random(0.6, 1.5), b * random(0.6, 1.5)
+						r * (float)random(0.6, 1.5), g * (float)random(0.6, 1.5), b * (float)random(0.6, 1.5)
 						)
 				);
 				break;
@@ -65,7 +66,7 @@ public:
 	}
 
 
-	int strip = 5;
+	int strip = 3;
 	double wait=0.5;
 
 	void update(double delta_time) {
@@ -75,7 +76,7 @@ public:
 			auto h = glutGet(GLUT_WINDOW_HEIGHT);
 			auto w = glutGet(GLUT_WINDOW_WIDTH);
 
-			fwExplode((GLint)random(0, w/2)+w/4, (GLint)random(0, h / 2) + h / 4 - h/16);
+			fwExplode((GLint)random(0, w-200)+100, (GLint)random(0, h / 2) + h / 4 - h/16);
 
 			strip--;
 			if (strip <= 0) {

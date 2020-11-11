@@ -4,33 +4,6 @@
 #include "App.h"
 
 #include <string_view>
-//#include <filesystem>
-//
-//    // specify the clear value for the depth buffer
-//    glClearDepth(1.0f);
-//    glEnable(GL_DEPTH_TEST);
-//    glDepthFunc(GL_LEQUAL);
-//
-//    // specify implementation-specific hints
-//    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-//
-//    GLfloat amb_light[] = { 0.2, 0.2, 0.2, 1.0 };
-//    GLfloat diffuse[] = { 0.8, 0.8, 0.8, 1 };
-//    GLfloat specular[] = { 0.0, 0.99, 0.0, 1 };
-//
-//    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb_light);
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-//    glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-//    glEnable(GL_LIGHT0);
-//    glEnable(GL_COLOR_MATERIAL);
-//    glShadeModel(GL_SMOOTH);
-//    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-//    glDepthFunc(GL_LEQUAL);
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_LIGHTING);
-//    glEnable(GL_LIGHT0);
-//    glClearColor(0.3, 0.7, 0.4, 0.5);
-//}
 
 void display(){
     App::instance()->display();
@@ -75,16 +48,14 @@ int main(int argc, char* argv[])
     //setting up PROJECTION
     //App::instance()->reshape(100,100);
 
-    //glShadeModel(GL_SMOOTH);
-    //
-
     glutDisplayFunc(display);    
     glutIdleFunc(&idle);				// register Idle Function
     glutKeyboardFunc(keyboard);			// register Keyboard Handler
-    glutKeyboardUpFunc(keyboardUp);
-    glutMouseFunc(mouse);	//(butt state x y)					// register Keyboard Handler
+    glutKeyboardUpFunc(keyboardUp); // register Keyboard Handler
+    glutMouseFunc(mouse);	//(butt state x y)					
+                            
     //	glutButtonBoxFunc(keyboard);
-    glutMotionFunc(pressedmousemoved); //- pressed and moved(x,y) 
+    glutMotionFunc(pressedmousemoved);//- pressed and moved(x,y) 
     glutPassiveMotionFunc(mousemoved);//moved(x,y) 
     glutReshapeFunc(reshape);//(W,H)
     //glutSetCursor(GLUT_CURSOR_NONE);
@@ -94,6 +65,6 @@ int main(int argc, char* argv[])
 
 
 
-    glutMainLoop();//запускаем всё проинициализированное, проще говоря та же ф-я main, только в данном случае glut'овская ф-я main.
+    glutMainLoop();
     return 0;
 }

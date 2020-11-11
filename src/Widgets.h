@@ -1,5 +1,6 @@
 #pragma once
 #include "utls.h"
+#include <iterator> 
 
 class Widget : public std::enable_shared_from_this<Widget> {
 protected:
@@ -13,6 +14,7 @@ protected:
 public:
 	GLuint texture;
 	GLfloat colorRGBA[4];
+	bool visible = true;
 
 	Widget(//std::shared_ptr<Widget> parent,
 		GLint offset_x0_, GLint offset_y0_,
@@ -61,33 +63,68 @@ public:
 		for (auto&& child : children)
 			child->reshape();
 	}
-	virtual void draw() {
-		//reshape();
+
+protected:
+	/** 
+	рисуем текстурой или цветом прямоугольник x0,y0,x1,y1 
+	**/
+	void drawQuad() {
+		
+		glEnableClientState(GL_VERTEX_ARRAY);
+
+		GLint vertexes[][2] = { {x0, y0}, {x0, y1}, {x1, y1}, {x1, y0} };
+		glVertexPointer(2, GL_INT, sizeof(GLint[2]), vertexes);
+		//glVertexPointer(3, GL_FLOAT, sizeof(GLfloat[3]), vertexes);
+
+		if (texture)
 		{
-			glColor4fv(colorRGBA);
-			glEnableClientState(GL_VERTEX_ARRAY);
+			GLfloat texCoords[][2] = { {0, 0}, {0, 1}, {1, 1}, {1, 0} };
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat[2]), texCoords);
 
-			GLint vertexes[][2] = { {x0, y0}, {x0, y1}, {x1, y1}, {x1, y0} };
-			glVertexPointer(2, GL_INT, sizeof(GLint[2]), vertexes);
-			//glVertexPointer(3, GL_FLOAT, sizeof(GLfloat[3]), vertexes);
-
-			if (texture)
-			{
-				GLfloat texCoords[][2] = { {0, 0}, {0, 1}, {1, 1}, {1, 0} };
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat[2]), texCoords);
-			
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, texture);
-			}
-			//glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexBuffers[layer]);
-			GLuint triangleList[][3] = { {0,1,3},{1,2,3} };
-			glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, triangleList);
-			glDisable(GL_TEXTURE_2D);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, texture);
 		}
+		//glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexBuffers[layer]);
+		GLuint triangleList[][3] = { {0,1,3},{1,2,3} };
+		glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, triangleList);
+		glDisable(GL_TEXTURE_2D);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+	/**
+	* Выводит текст, выравнивание относительно anchor_x0. 
+	* \param x_ : глобальная координата
+	* \param y_ : глобальная координата
+	* \param font_align_x : кооприната x_ будет соответствовать 0-левому краю, 1-правому, 0.5 - центру текста.
+	**/
+	void drawText(std::string_view text, int x_, int y_, float font_align_x = 0.0f) {
+		auto font = GLUT_BITMAP_9_BY_15;
+		int font_h = 15;
+		int font_w = 9;
+
+		int lines = 1;
+		int lineWidth = (int)std::distance(text.begin(), std::find(text.begin(), text.end(), '\n'));
+		glRasterPos2i(x_ - lineWidth * font_w * font_align_x, y_ + (lines * font_h));
+
+		for (auto p = text.begin(); p != text.end(); ++p)
+		{
+			if (*p == '\n')
+			{
+				lineWidth = (int)std::distance(p+1, std::find(p+1, text.end(), '\n'));
+				lines++;
+				glRasterPos2i(x_ - lineWidth * font_w * font_align_x, y_ + (lines * font_h));
+			}else
+				glutBitmapCharacter(font, *p);
+		}
+	}
+public:
+	virtual void draw() {
+		if (!visible) return;
+
+		glColor4fv(colorRGBA);
+		drawQuad();
 
 		for (auto&& child : children)
 			child->draw();
@@ -100,6 +137,7 @@ public:
 
 	bool mouseButton(int but, int state, int x, int y) {
 		bool handled = false;
+		if (!visible) return handled;
 		if (x >= x0 && x <= x1 && y0 <= y && y <= y1)//y0>y1??
 		{
 			for (auto&& child : children)
@@ -121,11 +159,12 @@ protected:
 	}
 }; 
 
-
-struct Button : public Widget {
+class WButton: public Widget{
 	std::function<void()>  onMouseDown;
-
-	Button( std::function<void()> && onMouseDown_,
+public:
+	std::string text;
+	WButton(std::string text_,
+			std::function<void()> && onMouseDown_,
 			GLint offset_x0_, GLint offset_y0_,
 			GLint offset_x1_, GLint offset_y1_,
 			GLfloat	anchor_x0_ = .0f, GLfloat anchor_y0_ = .0f,
@@ -137,19 +176,20 @@ struct Button : public Widget {
 			 anchor_x1_,  anchor_y1_)
 		, onMouseDown(onMouseDown_)
 	{
-		
+		text = std::move(text_);
 	}
-	/*Button() {
-		texture = LoadTexture("media/qwerty.png");
 
-	}*/
-	/*void draw() override {
-
-		//GLuint vertexBuffer, * indexBuffers;
-		//GLuint** triangleList;
-		
-
-	}*/
+	void draw() override {
+		if (!visible) return;
+		glColor4fv(colorRGBA);
+		drawQuad();
+		if (!text.empty()) {
+			glColor3ub(0, 0, 0);
+			drawText(text, (x0 + x1) / 2, (y0 + y1) / 2 - 11, 0.5f);
+		}
+		for (auto&& child : children)
+			child->draw();
+	}
 	bool mouseButtonImpl(int but, int state, int x, int y) override {
 		/* известно, что mouse_x, y попали в bbox widget'а */
 		bool handled = false;
@@ -158,5 +198,34 @@ struct Button : public Widget {
 			handled = true;
 		}
 		return handled;
+	}
+};
+
+class WText : public Widget {
+public:
+	std::string text;
+public:
+	WText(std::string text_,
+		GLint offset_x0_, GLint offset_y0_,
+		GLint offset_x1_, GLint offset_y1_,
+		GLfloat	anchor_x0_ = .0f, GLfloat anchor_y0_ = .0f,
+		GLfloat anchor_x1_ = .0f, GLfloat anchor_y1_ = .0f)
+		:Widget(
+			offset_x0_, offset_y0_,
+			offset_x1_, offset_y1_,
+			anchor_x0_, anchor_y0_,
+			anchor_x1_, anchor_y1_)
+	{
+		text = std::move(text_);
+	}
+
+	void draw() override {
+		if (!visible) return;
+
+		glColor4fv(colorRGBA);
+		drawText(text, x0, y1, anchor_x0);
+
+		for (auto&& child : children)
+			child->draw();
 	}
 };

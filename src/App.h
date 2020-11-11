@@ -26,6 +26,7 @@ private:
 	App();
 	~App();
 public:
+	//bool pause = false;
 	//[seconds] since start
 	float time_now = 0;
 	int fps;

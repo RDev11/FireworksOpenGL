@@ -7,59 +7,103 @@ App::App()
 	: rootWidget(0, 0, 0, 0, .0f, .0f, 1.0f, 1.0f)
 	, fireworks(this->objects)
 {
-	std::cout << "App();";
 	rootWidget.colorRGBA[3] = .0f;
 
 	auto windowClose = std::make_shared<Widget>(
-		-100, -60,
-		100, 60,
+		-100, -50,
+		100, 50,
 		0.5f, 0.5f,//align=center
 		0.5f, 0.5f
 	);
-	windowClose->colorRGBA[3] = 0.0;
+	{
+		windowClose->colorRGBA[0] = 0.5f;
+		windowClose->colorRGBA[1] = 0.5f;
+		windowClose->colorRGBA[2] = 0.5f;
+		windowClose->colorRGBA[3] = 0.9f;
+		//windowClose->texture = LoadTexture("media/box_green.png");
+		auto txtWClose_msg = std::make_shared<WText>(
+			"Quit the game?",
+			0, -30,
+			0, -30,
+			0.5f, 0.5f,
+			0.5f, 0.5f
+			);
+		auto btnWClose_confirm = std::make_shared<WButton>(
+			"Quit",
+			[]()
+			{
+				exit(0);
+			},
+			-90, 10,
+			-10, 30,
+			0.5f, 0.5f,
+			0.5f, 0.5f
+			);
+		auto btnWClose_cancel = std::make_shared<WButton>(
+			"Cancel",
+			[wwp = std::weak_ptr<Widget>(windowClose)]()
+			{
+				if (auto w = wwp.lock(); w)
+					w->visible = 0;
+			},
+			10, 10,
+			90, 30,
+			0.5f, 0.5f,
+			0.5f, 0.5f
+			);
+		windowClose->addChild(txtWClose_msg);
+		windowClose->addChild(btnWClose_confirm);
+		windowClose->addChild(btnWClose_cancel);
+		
+		windowClose->visible = false;
+		rootWidget.addChild(windowClose);
+	}
 
-	rootWidget.addChild(windowClose);
 
+	auto buttonClose = std::make_shared<WButton>(
+		"",
+		[wwp = std::weak_ptr<Widget>(windowClose)]() 
+	    {
+		if (auto w = wwp.lock(); w)
+			w->visible = !w->visible;
+		}, 
+		16     , -16 - 48,
+		16 + 48, -16,
+		0.0f, 1.0f, 
+		0.0f, 1.0f
+	);
+	buttonClose->texture = LoadTexture("media/exit.png");
 
-	
-	rootWidget.addChild(
-		std::make_shared<Button>(
-			[w = std::weak_ptr<Widget>(windowClose)]() {
-				cout << "clicked";
-				w.lock()->colorRGBA[3] += 0.0; 
-			}, 
-			16, -16 - 32, 16 + 48, -16, .0f, 1.0f, 0.0f, 1.0f));
-
-
+	rootWidget.addChild(buttonClose);
 }
 App::~App()
-{
-	std::cout << "~App();";
-}
+{ }
 /**
 **/
 void App::display() {
 	//сначала вся логика 
 	int miliseconds_since_start = glutGet(GLUT_ELAPSED_TIME);
 	double time_since_last_frame = miliseconds_since_start * 0.001 - time_now;
-	time_now = float( miliseconds_since_start * 0.001);
+	time_now = float(miliseconds_since_start * 0.001);
 
 	fps_t += time_since_last_frame;
 	fps_i++;
-	if (fps_t > 0.5f)	{
-		fps = int(fps_i/0.5f);
+	if (fps_t > 0.5f) {
+		fps = int(fps_i / 0.5f);
 		fps_i = 0;
 		fps_t -= 0.5f;
 	}
-	
-	fireworks.update(time_since_last_frame);
 
-	for (auto && o : objects)	{
-		o->update(time_since_last_frame);
+	//if (!pause)
+	{
+		fireworks.update(time_since_last_frame);
+
+		for (auto&& o : objects) {
+			o->update(time_since_last_frame);
+		}
+
+		objects.remove_if([](const std::shared_ptr<GameObject>& o) { return o->isDestroed(); });
 	}
-
-	objects.remove_if([](const std::shared_ptr<GameObject>& o) { return o->isDestroed(); });
-	
 
 	//========================================================
 	//теперь отрисовка
@@ -113,143 +157,21 @@ void App::display() {
 	//glVertex2d(50, 40);
 	//glEnd();
 
-	glColor3ub(0, 255, 0);
-	printText(0, glutGet(GLUT_WINDOW_HEIGHT), "Fps: " + std::to_string(fps) + "\n#Particles: " + std::to_string(objects.size()));
+	glColor3ub(0, 192, 0);
+	printText(0, glutGet(GLUT_WINDOW_HEIGHT), "Fps: " + std::to_string(fps) 
+		+ "\n#Particles: " + std::to_string(objects.size())
+		+ "\n#Fireworks: " + std::to_string(fireworks.fwCount));
 	
 
 	glutSwapBuffers();//прорисовываем буфер на экран
-
-	//
-	//
-	//	int tss = glutGet(GLUT_ELAPSED_TIME);
-	//	time_since_last_frame = double(tss - last_frame_time) / 1000;
-	//	last_frame_time = tss;
-	//	//count fps
-	//	s_time += time_since_last_frame;
-	//	s_time_i++;
-	//	if (s_time > 1.0)
-	//	{
-	//		fps = s_time_i;
-	//		s_time -= 1.0;
-	//		s_time_i = 0;
-	//	}							//
-	//	if (!keys['r'] || keys['y'])///////////////////////////////////////////////////D I S P L A Y
-	//	{
-	//		if (keys['w'])Cam.onW(move_speed * time_since_last_frame);
-	//		if (keys['a'])Cam.strafe(-move_speed * time_since_last_frame);
-	//		if (keys['s'])Cam.onW(-move_speed * time_since_last_frame);
-	//		if (keys['d'])Cam.strafe(move_speed * time_since_last_frame);
-	//		if (keys['q'])Cam.onA(50 * time_since_last_frame);
-	//		if (keys['e'])Cam.onA(-50 * time_since_last_frame);
-	//	}
-	//	glDisable(GL_TEXTURE_2D);
-	//
-	//	// Clear Screen and Depth Buffer
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		     ///////////////D I S P L A Y
-	//	glLoadIdentity();
-	//	//glBitmap(32,32,1,1,0,0,img[0][0]);
-	//	//glMap2f(;
-	//	//glDrawPixels(32,32,4,GL_UNSIGNED_BYTE,img);
-	//
-	//	characterController.doyourstuff(keys, &Cam, time_since_last_frame);
-	//	Cam.apply();
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//	//if(keys['W'])
-	//	//	charaterController.rigidBody_->applyCentralImpulse(btVector3(1,0,0).rotate(btVector3(0,1,0),(90+Cam.pitch)*3.1415/180)
-	//
-	//	characterController.update_transform_and_draw();
-	//
-	//
-	//
-	//
-	//
-	//	if (keys['m'])
-	//		m_dynamicsWorld->stepSimulation(time_since_last_frame, 1, time_since_last_frame);
-	//
-	//	rootNode->draw();
-	//
-	//	//glRotatef(g_rotation,0,1,0);
-	//	/*
-	//	angle_m*=0.995;
-	//	if(keys['N'])	mm.applySkelet();
-	//	mm.bones[8].getWorldTransform(gun.pos,gun.ori);
-	//	gun.pos+=mm.dpos;
-	//	//,gun.or
-	//	aa->addTime(timesinelastframe*2);
-	//	aa->apply(mm,multval);
-	//	//
-	//	mm.bones[1].ori=mm.bones[1].ori*quat(angle_m,vec3(1,0,0));
-	//	glDisable(GL_LIGHTING);
-	//	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
-	//	map.Draw();
-	//	glEnable(GL_TEXTURE_2D);
-	//	*/
-	//
-	//	/*	glEnable(GL_POINT_SMOOTH);		glPointSize(5);
-	//		glPolygonMode(GL_BACK,GL_LINE);		glFrontFace(GL_CCW);	*/
-	//		//////////////////////////////////////////
-	//
-	//		///////////////////////////////////////////
-	//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	//	glLoadIdentity();
-	//	glMatrixMode(GL_PROJECTION);
-	//	glLoadIdentity();
-	//	GLfloat aspect = (GLfloat)win.width / win.height;
-	//	glOrtho(0, win.width, 0, win.height, 0, 1);
-	//	glEnable(GL_TEXTURE_2D);
-	//	glBlendFunc(GL_ONE, GL_SRC_ALPHA);
-	//	glBindTexture(GL_TEXTURE_2D, sceneManager.materialManager.font);
-	//	sceneManager.materialManager.setptr(0, win.height);
-	//	{
-	//		char fps_char[50];
-	//		_itoa(fps, fps_char, 10);
-	//		int i;
-	//		for (i = 0; fps_char[i] != '\0'; i++); fps_char[i++] = ' ';
-	//		_itoa(int(cc_velocity.y() * 100), &fps_char[i], 10);
-	//		for (i = 0; fps_char[i] != '\0'; i++); fps_char[i++] = ' ';
-	//		_itoa(int(cc_velocity.length() * 100), &fps_char[i], 10);
-	//		for (i = 0; fps_char[i] != '\0'; i++); fps_char[i++] = ' ';
-	//		cc_velocity.setY(0);
-	//		_itoa(int(cc_velocity.length() * 100), &fps_char[i], 10);
-	//
-	//		sceneManager.materialManager.Symbol(fps_char);
-	//	}
-	//	glDisable(GL_BLEND);
-	//	glLoadIdentity();
-	//	gluPerspective(win.field_of_view_angle, aspect, win.z_near, win.z_far);
-	//	glMatrixMode(GL_MODELVIEW);
-	//	////////////////////////////////////////
-	//	glutSwapBuffers();
 }
 void App::keyboard(unsigned char key, int mousePositionX, int mousePositionY) {
 
 	switch (key)
 	{
-	case 27://escape
-	//	closing();
-		//shutdown();
-		exit(0);
-		//case '~':
-		//case '`':
-		//	APP.guiP->state= (APP.guiP->state+1)%3;
-		//	if( APP.guiP->state==0)
-		//	{
-		//		glutWarpPointer(win.width/2,win.height/2);
-		//		glutSetCursor(GLUT_CURSOR_NONE);
-		//	}
-		//	else
-		//		glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
-
-		//	break;
-		//case 'b':
-		//	test_b_s=(test_b_s+1)%mm.BNUM; 
-		//	break;
+	//case 27://escape
+	//	exit(0);
+	
 	//	case 'P':
 	//		mm.Load("c:\\"); 
 	//		break;
@@ -287,7 +209,7 @@ void App::keyboardUp(unsigned char key, int mousePositionX, int mousePositionY) 
 void App::mouseButton(int but, int state, int x, int y) {
 	mouse_x = x;
 	mouse_y = y;
-	std::cout << "mouseEvent("<<but<<", "<< state << ", " << x << ", " << y << ")" << std::endl;
+	//std::cout << "mouseEvent("<<but<<", "<< state << ", " << x << ", " << y << ")" << std::endl;
 	bool handled = rootWidget.mouseButton(but, state, x, y);
 	if (!handled && but == GLUT_LEFT_BUTTON && state == GLUT_DOWN)	{
 		fireworks.fwExplode(x, y);
