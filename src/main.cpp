@@ -33,11 +33,11 @@ void pressedmousemoved(int X, int Y){
 
 int main(int argc, char* argv[])
 {
-    #ifndef NDEBUG
+    #ifdef NDEBUG
         ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
-
-    #endif // !1
-    ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+    #else 
+        ::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+    #endif
 
     //std::filesystem::current_path()
     //setlocale(LC_ALL, "");
